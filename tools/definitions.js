@@ -1115,4 +1115,57 @@ Blacklisted tokens are filtered BEFORE the LLM even sees pool candidates.`,
       }
     }
   },
+  {
+    type: "function",
+    function: {
+      name: "simulate_lp_position",
+      description: `Simulate a hypothetical DLMM LP position using historical 5m OHLCV candles.
+
+Replays real price and volume data to estimate:
+- Fee earnings (proportional to your TVL share per bin)
+- Impermanent loss (from price movement through your range)
+- Net PnL = fees + IL
+- In-range % (how often price stayed inside your range)
+- Annualized fee APR
+
+Supports three liquidity strategies:
+- spot: uniform distribution across all bins (most balanced)
+- curve: concentrated in center bins near active price (higher fee share when in range)
+- bid-ask: concentrated at edges (useful for tight spreads and range order style)
+
+Use this before deploying to compare strategies, tune range width, or stress-test a position
+against recent volatility. Mode is always replay (last N hours of real data).`,
+      parameters: {
+        type: "object",
+        required: ["pool_address", "deposit_amount", "lower_price", "upper_price"],
+        properties: {
+          pool_address: {
+            type: "string",
+            description: "Base58 pool address to simulate",
+          },
+          deposit_amount: {
+            type: "number",
+            description: "Deposit size in USD",
+          },
+          lower_price: {
+            type: "number",
+            description: "Lower bound of the position price range",
+          },
+          upper_price: {
+            type: "number",
+            description: "Upper bound of the position price range",
+          },
+          strategy_type: {
+            type: "string",
+            enum: ["spot", "curve", "bid-ask"],
+            description: "Liquidity distribution strategy. Default: spot",
+          },
+          hours: {
+            type: "number",
+            description: "How many hours of historical candles to replay (default: 24, max: 168)",
+          },
+        },
+      },
+    },
+  },
 ];
